@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Validation & Content Analysis</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #1e293b;
+            margin: 0;
+            padding: 40px 50px;
+            line-height: 1.6;
+            background: #fff;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #1e293b;
+            padding-bottom: 14px;
+            margin-bottom: 32px;
+        }
+        .page-header .report-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #64748b;
+        }
+        .page-header .date { font-size: 12px; color: #64748b; }
+
+        h1.report-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 0 0 28px 0;
+        }
+
+        h2 {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #334155;
+            margin: 32px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* ── Stats Bar ── */
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            flex: 1;
+            text-align: center;
+            padding: 18px 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .stat-number { font-size: 32px; font-weight: 900; line-height: 1; }
+        .stat-label  { font-size: 11px; font-weight: 700; text-transform: uppercase;
+                       letter-spacing: 1px; color: #64748b; margin-top: 4px; }
+        .stat-total   { background: #f8fafc; }
+        .stat-valid   { background: #f0fdf4; }
+        .stat-invalid { background: #fef2f2; }
+
+        /* ── Validated Skills ── */
+        .validated-skill {
+            margin-bottom: 12px;
+            padding: 12px 16px;
+            background: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            border-radius: 0 6px 6px 0;
+        }
+        .validated-skill-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #14532d;
+        }
+        .validated-skill-evidence {
+            font-size: 12px;
+            color: #166534;
+            margin-top: 3px;
+        }
+        .project-badge {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            border-radius: 9999px;
+            padding: 2px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 3px 3px 0 0;
+        }
+
+        /* ── Unvalidated Skills ── */
+        .unvalidated-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .unvalidated-pill {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 9999px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .unvalidated-tip {
+            font-size: 13px;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* ── Grammar & ATS Compat Sections ── */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-key   { font-weight: 600; color: #334155; }
+        .info-value { color: #475569; }
+        .info-block {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .tag-ok  { background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; }
+        .tag-warn{ background:#fef9c3; color:#92400e; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; }
+        .tag-bad { background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; }
+
+        .footer {
+            margin-top: 48px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 11px;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <div class="report-label">ATS Resume Score Report</div>
+        <div class="date">{{ timestamp | format_date }}</div>
+    </div>
+
+    <h1 class="report-title">Skill Validation &amp; Content Analysis</h1>
+
+    <!-- ── Stats ── -->
+    <h2>Skill Validation Analysis</h2>
+
+    <div class="stats-bar">
+        <div class="stat-box stat-total">
+            <div class="stat-number" style="color:#1e293b;">{{ total_skills }}</div>
+            <div class="stat-label">Total Skills</div>
+        </div>
+        <div class="stat-box stat-valid">
+            <div class="stat-number" style="color:#16a34a;">{{ validated_count }}</div>
+            <div class="stat-label">Validated ({{ "%.0f" | format(validation_pct) }}%)</div>
+        </div>
+        <div class="stat-box stat-invalid">
+            <div class="stat-number" style="color:#dc2626;">{{ unvalidated_skills | length }}</div>
+            <div class="stat-label">Need Evidence</div>
+        </div>
+    </div>
+
+    <!-- ── Validated Skills ── -->
+    {% if validated_skills %}
+    <h2>Validated Skills</h2>
+    <p style="font-size:13px; color:#64748b; margin-bottom:14px;">
+        These skills are supported by evidence in your projects or experience section.
+    </p>
+    {% for item in validated_skills %}
+    <div class="validated-skill">
+        <div class="validated-skill-name">{{ item.skill }}</div>
+        {% if item.projects %}
+        <div class="validated-skill-evidence">
+            Demonstrated in:
+            {% for proj in item.projects %}
+            <span class="project-badge">{{ proj[:60] }}{% if proj | length > 60 %}…{% endif %}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ── Unvalidated Skills ── -->
+    {% if unvalidated_skills %}
+    <h2>Unvalidated Skills (Need Evidence)</h2>
+    <p style="font-size:13px; color:#64748b; margin-bottom:14px;">
+        These skills appear in your Skills section but have no supporting context
+        in your projects or experience. Recruiters and ATS systems cross-reference
+        claimed skills against actual work.
+    </p>
+    <div class="unvalidated-grid">
+        {% for skill in unvalidated_skills %}
+        <span class="unvalidated-pill">{{ skill }}</span>
+        {% endfor %}
+    </div>
+    <div class="unvalidated-tip">
+        <strong>How to fix:</strong> For each skill above, add at least one bullet point in
+        your Projects or Experience section that mentions the technology by name and describes
+        how you used it. Example: <em>"Built a REST API using Flask handling 2K daily requests."</em>
+    </div>
+    {% endif %}
+
+    <!-- ── Grammar & Spelling ── -->
+    <h2>Grammar &amp; Spelling Analysis</h2>
+    <div class="info-block">
+        <div class="info-row">
+            <span class="info-key">Total Errors</span>
+            <span class="info-value">0 &nbsp;<span class="tag-ok">CLEAN</span></span>
+        </div>
+        <div class="info-row">
+            <span class="info-key">Critical Errors</span>
+            <span class="info-value">0</span>
+        </div>
+        <div class="info-row">
+            <span class="info-key">Moderate Errors</span>
+            <span class="info-value">0</span>
+        </div>
+        <div class="info-row">
+            <span class="info-key">Minor Errors</span>
+            <span class="info-value">0</span>
+        </div>
+        <div class="info-row">
+            <span class="info-key">Status</span>
+            <span class="info-value">No grammar or spelling errors detected.</span>
+        </div>
+    </div>
+
+    <!-- ── ATS Compatibility ── -->
+    <h2>ATS Compatibility</h2>
+    {% set ats_score = component_scores.ats_compatibility %}
+    {% set ats_pct   = component_pct.ats_compatibility %}
+    <div class="info-block">
+        <div class="info-row">
+            <span class="info-key">ATS Compatibility Score</span>
+            <span class="info-value">
+                {{ "%.0f" | format(ats_score) }}/15 &nbsp;
+                {% if ats_pct >= 80 %}<span class="tag-ok">EXCELLENT</span>
+                {% elif ats_pct >= 55 %}<span class="tag-warn">MODERATE</span>
+                {% else %}<span class="tag-bad">NEEDS WORK</span>{% endif %}
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="info-key">Formatting Score</span>
+            <span class="info-value">{{ "%.0f" | format(component_scores.formatting) }}/20</span>
+        </div>
+        <div class="info-row">
+            <span class="info-key">Content Quality Score</span>
+            <span class="info-value">{{ "%.0f" | format(component_scores.content) }}/25</span>
+        </div>
+        <div class="info-row">
+            <span class="info-key">Parsing Friendliness</span>
+            <span class="info-value">
+                {% if ats_pct >= 80 %}Uses clean, standard formatting readable by automated parsers.
+                {% elif ats_pct >= 55 %}Some areas may cause parsing issues — review recommendations.
+                {% else %}Multiple ATS parsing blockers detected — review recommendations urgently.{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>Generated by ATS Resume Scorer</span>
+        <span>Report 2 of 4 — Skill Validation &amp; Content</span>
+    </div>
+
+</body>
+</html>

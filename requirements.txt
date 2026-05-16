@@ -1,0 +1,44 @@
+# ATS Resume Scorer — combined backend + frontend dependencies.
+#
+# Install with:
+#     pip install -r requirements.txt
+#
+# After installing, download the spaCy model the backend uses at startup:
+#     python -m spacy download en_core_web_md
+#
+# WeasyPrint (used for PDF export) also needs system libraries on Linux:
+#     sudo dnf install -y cairo pango gdk-pixbuf2 libffi    # Fedora
+#     sudo apt install -y libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libffi-dev  # Debian/Ubuntu
+
+# ── Backend: web framework ──
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+python-multipart>=0.0.9      # required by FastAPI for File/Form uploads
+python-dotenv>=1.0
+
+# ── Backend: NLP / ML ──
+spacy>=3.7,<4.0
+sentence-transformers>=2.5
+numpy>=1.26
+rapidfuzz>=3.6
+
+# ── Backend: file parsing ──
+pdfplumber>=0.11
+PyPDF2>=3.0
+python-docx>=1.1
+python-magic>=0.4.27
+
+# ── Backend: PDF report generation ──
+jinja2>=3.1
+weasyprint>=60.0
+
+# ── Backend: external services ──
+httpx>=0.27                  # async Supabase REST client
+groq>=0.13                   # Groq LLM client (0.13+ is required for httpx>=0.28 compatibility)
+PyJWT[crypto]>=2.8           # verifies Supabase access tokens (HS256)
+
+# ── Frontend ──
+streamlit>=1.32
+requests>=2.31
+supabase>=2.4                # frontend auth client (email/password + OAuth)
