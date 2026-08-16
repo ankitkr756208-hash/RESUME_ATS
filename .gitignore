@@ -1,14 +1,27 @@
+# OS files
 .DS_Store
 
+# Python
 __pycache__/
+*.pyc
+*.pyo
 
+# Virtual env
+venv/
+.venv/
 
-# Datasets
-*.csv
+# Environment variables
+.env
+
+# Jupyter
+.ipynb_checkpoints/
 
 # Logs
 *.log
 
+# Datasets
+*.csv
+
 # ML models
-*.safetensors
 *.pkl
+*.safetensors
