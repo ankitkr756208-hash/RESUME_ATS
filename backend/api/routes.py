@@ -171,7 +171,7 @@ async def generate_pdf(
 
     try:
         html_docs = generate_html_reports(data.model_dump())
-        pdf_bytes = generate_combined_pdf(html_docs)
+        pdf_bytes = await generate_combined_pdf(html_docs)
 
         return Response(
             content=pdf_bytes,
@@ -203,7 +203,7 @@ async def generate_history_pdf(
 
     try:
         html_docs = generate_html_reports(analysis_data)
-        pdf_bytes = generate_combined_pdf(html_docs)
+        pdf_bytes = await generate_combined_pdf(html_docs)
 
         return Response(
             content=pdf_bytes,

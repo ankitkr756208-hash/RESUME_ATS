@@ -1,6 +1,7 @@
 import io
-import magic
-from typing import Tuple, Optional, Tuple
+import zipfile
+from pathlib import Path
+from typing import Tuple, Optional
 
 import pdfplumber
 from docx import Document
@@ -28,6 +29,32 @@ class FileParsingError(Exception):
 class FileValidationError(Exception):
     pass
 
+
+def _detect_file_mime(file_data: bytes, filename: str) -> Optional[str]:
+    """Detect supported resume MIME types without requiring the external libmagic binary."""
+    name = (filename or '').lower()
+    extension = Path(name).suffix.lower()
+
+    if file_data.startswith(b'%PDF') or extension == '.pdf':
+        return 'application/pdf'
+
+    if file_data.startswith(b'PK\x03\x04') or extension == '.docx':
+        try:
+            with zipfile.ZipFile(io.BytesIO(file_data)) as zf:
+                names = set(zf.namelist())
+                if '[Content_Types].xml' in names and ('word/document.xml' in names or any(name.startswith('word/') for name in names)):
+                    return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        except Exception:
+            pass
+        if extension == '.docx':
+            return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+    if file_data.startswith(b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1') or extension == '.doc':
+        return 'application/msword'
+
+    return None
+
+
 def validate_file(file_data:bytes, filename:str)->Tuple[bool, str, Optional[str]]:
     file_size_bytes = len(file_data)
     if file_size_bytes > MAX_FILE_SIZE_BYTES:
@@ -39,20 +66,28 @@ def validate_file(file_data:bytes, filename:str)->Tuple[bool, str, Optional[str]
     
     if file_size_bytes==0:
         return False, 'uploade file is empty...please check the file you have uploaded and try again'
-    
-    try:
-        mime_type=magic.from_buffer(file_data, mime=True)
-    except Exception as e:
-        return False, f"error deteminin the file type : {e}", None
-    
+
+    mime_type = _detect_file_mime(file_data, filename)
+    if mime_type is None:
+        detected = file_data[:8]
+        maybe_name = str(filename).lower()
+        supported = ', '.join(SUPPORTED_MIME_TYPES.keys()).upper()
+        if maybe_name.endswith(('.pdf', '.doc', '.docx')):
+            return False, (
+                f'Could not identify a valid {maybe_name.rsplit(".", 1)[-1].upper()} file. '
+                f'Please upload a real resume file with a valid document signature.'
+            ), None
+        return False, (
+            f'Unsupported file type: {detected!r}. '
+            f'Please upload one of: {supported}.'
+        ), None
+
     if mime_type not in SUPPORTED_MIME_TYPES:
         supported=', '.join(SUPPORTED_MIME_TYPES.keys()).upper()
         return False, (
             f'Unsupported file type: {mime_type}. '
             f'Please upload one of: {supported}.'
         ), None
-    
-    
 
     return True, '', SUPPORTED_MIME_TYPES[mime_type]
 

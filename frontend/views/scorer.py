@@ -40,7 +40,19 @@ def _show_backend_error(exc: Exception) -> None:
             detail = exc.response.json().get("detail", exc.response.text)
         except ValueError:
             detail = exc.response.text
-        st.error(f"Backend returned {exc.response.status_code}: {detail}")
+
+        if "PDF export is unavailable" in detail or "libgobject-2.0-0" in detail or "HTML/CSS PDF export is unavailable" in detail:
+            st.error("PDF export is blocked because the Windows native libraries for WeasyPrint are missing, so HTML/CSS cannot be rendered into a styled PDF.")
+            st.code(
+                "1) Install MSYS2\n"
+                "2) In MSYS2 shell run:\n"
+                "   pacman -S mingw-w64-x86_64-gtk3 mingw-w64-x86_64-pango mingw-w64-x86_64-cairo mingw-w64-x86_64-gdk-pixbuf2 mingw-w64-x86_64-glib2\n"
+                "3) Add C:\\msys64\\mingw64\\bin to PATH\n"
+                "4) Restart uvicorn and retry the PDF button\n\n"
+                "If you want a simpler fallback, use Playwright or wkhtmltopdf instead of the ReportLab text path."
+            )
+        else:
+            st.error(f"Backend returned {exc.response.status_code}: {detail}")
     else:
         st.error(f"Unexpected error: {exc}")
 

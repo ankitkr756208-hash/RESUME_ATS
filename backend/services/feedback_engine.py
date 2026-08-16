@@ -1,7 +1,6 @@
-so yeah#what is specifically wrong in my resume?
-
 import re
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Optional
+
 from backend.models.schemas import IssueDetail
 
 def analyze_issues(

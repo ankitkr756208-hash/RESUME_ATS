@@ -27,11 +27,12 @@ rapidfuzz>=3.6
 pdfplumber>=0.11
 PyPDF2>=3.0
 python-docx>=1.1
-python-magic>=0.4.27
 
 # ── Backend: PDF report generation ──
 jinja2>=3.1
-weasyprint>=60.0
+reportlab>=4.0
+weasyprint>=60.0  # preferred HTML/CSS engine; requires native GTK/GObject libs on Windows
+playwright>=1.47  # browser-based fallback for Windows environments where WeasyPrint native libs are unavailable
 
 # ── Backend: external services ──
 httpx>=0.27                  # async Supabase REST client
