@@ -8,7 +8,7 @@ from groq import Groq
 logger=logging.getLogger('ats_resume_scorer')
 
 
-GROQ_MODEL='llama-3.3-70b-versatile'
+GROQ_MODEL='openai/gpt-oss-20b'
 
 _client=None
 
